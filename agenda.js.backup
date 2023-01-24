@@ -1,0 +1,112 @@
+var httpObject = null;
+var httpObject2 = null;
+var link = "";
+var timerID = 0;
+
+// Get the HTTP Object
+function getHTTPObject()
+{
+  if( window.ActiveXObject )
+    return new ActiveXObject("Microsoft.XMLHTTP");
+  else if( window.XMLHttpRequest )
+    return new XMLHttpRequest();
+  else
+  {
+    alert("Your browser does not support AJAX.");
+    return null;
+  }
+}
+
+function setNow( text )
+{
+  var objDiv = document.getElementById("CurrentAgendaItem");
+  objDiv.innerHTML = response;
+}
+
+function recvAgendaItem()
+{
+  if( httpObject.readyState == 4 )
+  {
+    var response = httpObject.responseText;
+    var objDiv = document.getElementById("CurrentAgendaItem");
+    objDiv.innerHTML = response;
+//    objDiv.scrollTop = objDiv.scrollHeight;
+  }
+}
+
+function markItem( id )
+{
+  httpObject = getHTTPObject();
+  if( httpObject != null )
+  {
+    var offset = Math.floor( jwplayer().getPosition() );
+    var link = dataURL + '?mediaid=' + mediaid + "&cmd=mk3&textid=" + id + "&position=" + offset;
+    httpObject.open("POST", link , true);
+    httpObject.onreadystatechange = recvAgendaItem;
+    httpObject.send(null);
+  }
+}
+
+function getAgendaItem( offset )
+{
+  httpObject = getHTTPObject();
+  if( httpObject != null )
+  {
+    var link = dataURL + '?mediaid=' + mediaid + "&cmd=ply&position=" + offset;
+    httpObject.open("POST", link , true);
+    httpObject.onreadystatechange = recvAgendaItem;
+    httpObject.send(null);
+  }
+}
+
+function recvAllAgendaItem()
+{
+  if( httpObject2.readyState == 4 )
+  {
+    var response = httpObject2.responseText;
+    var objDiv = document.getElementById("AgendaItemList");
+    objDiv.innerHTML = response;
+//    objDiv.scrollTop = objDiv.scrollHeight;
+  }
+}
+
+function getAllAgenda( edit )
+{
+  httpObject2 = getHTTPObject();
+  if( httpObject2 != null )
+  {
+    var link = dataURL + '?mediaid=' + mediaid + "&cmd=lst";
+    if( 1 == edit )
+    {
+      link += "&edit=1";
+    }
+    httpObject2.open("POST", link , true);
+    httpObject2.onreadystatechange = recvAllAgendaItem;
+    httpObject2.send(null);
+  }
+}
+
+function doReload()
+{
+  if( jwplayer != null )
+  {
+    var position = Math.floor( jwplayer().getPosition() );
+    getAgendaItem( position );
+  }
+}
+
+function UpdateTimer()
+{
+  doReload();
+  timerID = setTimeout("UpdateTimer()", 5000);
+}      
+
+function gotoIndex( offset, name )
+{
+  if( jwplayer != null )
+  {
+    jwplayer().seek( offset );
+    getAgendaItem( offset );
+  }
+}
+
